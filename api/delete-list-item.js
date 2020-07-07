@@ -1,5 +1,5 @@
 /*
-ROUTE : DELETE /list-item/{list_item_id}  
+ROUTE : DELETE /list-item/t/{list_item_id}  
 */
 
 

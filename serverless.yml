@@ -32,7 +32,7 @@ provider:
         - dynamodb:Query
         - dynamodb:PutItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.LIST_ITEM_TABLE"
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.LIST_ITEM_TABLE}"
 
 functions:
   add-list-item:
@@ -67,20 +67,20 @@ functions:
             headers: ${self:custom.allowedHeaders}
   get-list-item:
     handler: api/get-list-item.handler
-    description: GET /list-item/{list_item_id}
+    description: GET /list-item/id/{list_item_id}
     events:
       - http:
-          path: list-item/{list_item_id}
+          path: list-item/id/{list_item_id}
           method: get
           cors:
             origin: "*"
             headers: ${self:custom.allowedHeaders}
   delete-list-item:
     handler: api/delete-list-item.handler
-    description: DELETE /list-item
+    description: DELETE /list-item/t/{timestamp}
     events:
       - http:
-          path: list-item/{timestamp}
+          path: list-item/t/{timestamp}
           method: delete
           cors:
             origin: "*"

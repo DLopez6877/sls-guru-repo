@@ -1,5 +1,5 @@
 /*
-ROUTE : GET /list-item/{list_item_id}
+ROUTE : GET /list-item/id/{list_item_id}
 */
 
 
