@@ -1,0 +1,27 @@
+{
+  "name": "sls-guru",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.710.0",
+    "moment": "^2.27.0",
+    "serverless-offline": "^6.4.0",
+    "underscore": "^1.10.2",
+    "uuid": "^8.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DLopez6877/sls-guru-repo.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DLopez6877/sls-guru-repo/issues"
+  },
+  "homepage": "https://github.com/DLopez6877/sls-guru-repo#readme"
+}

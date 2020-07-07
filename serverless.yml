@@ -1,4 +1,21 @@
 service: sls-guru
+
+plugins:
+  - serverless-offline
+
+custom:
+  allowedHeaders:
+    - Accept
+    - Content-Type
+    - Content-Length
+    - Authorization
+    - X-Amz-Date
+    - X-Api-Key
+    - X-Amz-Security-Token
+    - X-Amz-User-Agent
+    - app_user_id
+    - app_user_name
+
 provider:
   name: aws
   runtime: nodejs12.x
@@ -9,6 +26,65 @@ provider:
   endpoint: regional
   environment:
     LIST_ITEM_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:PutItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.LIST_ITEM_TABLE"
+
+functions:
+  add-list-item:
+    handler: api/add-list-item.handler
+    description: POST /list-item
+    events:
+      - http:
+          path: list-item
+          method: post
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
+  update-list-item:
+    handler: api/update-list-item.handler
+    description: PATCH /list-item
+    events:
+      - http:
+          path: list-item
+          method: patch
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
+  get-list-items:
+    handler: api/get-list-items.handler
+    description: GET /list-items
+    events:
+      - http:
+          path: list-items
+          method: get
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
+  get-list-item:
+    handler: api/get-list-item.handler
+    description: GET /list-item/{list_item_id}
+    events:
+      - http:
+          path: list-item/{list_item_id}
+          method: get
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
+  delete-list-item:
+    handler: api/delete-list-item.handler
+    description: DELETE /list-item
+    events:
+      - http:
+          path: list-item/{timestamp}
+          method: delete
+          cors:
+            origin: '*'
+            headers: ${self:custom.allowedHeaders}
 
 resources:
   Resources:
