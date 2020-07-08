@@ -4,12 +4,43 @@ type Schema {
 }
 
 type Query {
-    batchGetListItems(id: [String]): [ListItem]
-    getListItem(id: String!): ListItem
+    getListItems: [ListItem]
+    getListItem(list_item_id: String!): ListItem
 }
 
 type Mutation {
     createListItem(input: CreateListItemInput!) ListItem
-    deleteListItem(input: DeleteListItemInput!) ListItem
     updateListItem(input: UpdateListItemInput!) ListItem
+    deleteListItem(input: DeleteListItemInput!) ListItem
+}
+
+type ListItem {
+    user_id: String!
+    list_item_id: String!
+    user_name: String!
+    timestamp: String
+    expires: Int
+    qty: Int
+}
+
+input CreateListItemInput {
+    user_id: String!
+    list_item_id: String!
+    user_name: String!
+    timestamp: String
+    expires: Int
+    qty: Int
+}
+
+input UpdateListItemInput {
+    user_id: String
+    list_item_id: String!
+    user_name: String
+    timestamp: String
+    expires: Int
+    qty: Int
+}
+
+input DeleteListItemInput {
+    timestamp: String!
 }

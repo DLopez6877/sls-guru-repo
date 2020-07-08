@@ -1,36 +1,31 @@
 /*
-ROUTE : POST /list-item  
+ROUTE : DELETE /list-item/t/{list_item_id}  
 */
 
 
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-west-2' })
 
-const util = require('./util.js');
-const moment = require('moment');
-const { v4: uuidv4 } = require('uuid');
-
+const util = require('../api/util.js');
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const tableName = process.env.LIST_ITEM_TABLE;
 
 exports.handler = async (event) => {
     try {
-        let item = JSON.parse(event.body).Item;
-        item.user_id = util.getUserId(event.headers);
-        item.user_name = util.getUserName(event.headers);
-        item.list_item_id = item.user_id + ':' + uuidv4();
-        item.timestamp = moment().unix();
-        item.expires = moment().add(60, 'days').unix();
-
-        await dynamoDB.put({
+        let timestamp = parseInt(event.pathParameters.timestamp);
+        let params = {
             TableName: tableName,
-            Item: item
-        }).promise();
+            Key: {
+                user_id: util.getUserId(event.headers),
+                timestamp: timestamp
+            }
+        }
+
+        await dynamoDB.delete(params).promise();
 
         return {
             statusCode: 200,
-            headers: util.getResponseHeaders(),
-            body: JSON.stringify(item)
+            headers: util.getResponseHeaders()
         }
     } catch (error) {
         console.log("Error", error)

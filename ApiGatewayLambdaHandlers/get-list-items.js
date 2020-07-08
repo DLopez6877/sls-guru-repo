@@ -5,7 +5,7 @@ ROUTE : GET /list-items/
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-west-2' })
 
-const util = require('./util.js');
+const util = require('../api/util.js');
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const tableName = process.env.LIST_ITEM_TABLE;
 

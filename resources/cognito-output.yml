@@ -1,0 +1,15 @@
+UserPoolId:
+  Value:
+    Ref: UserPool
+  Export:
+    Name: ${self:custom.base}-UserPoolId
+UserPoolClientId:
+  Value:
+    Ref: UserPoolClient
+  Export:
+    Name: ${self:custom.base}-UserPoolClientId
+IdentityPoolId:
+  Value:
+    Ref: IdentityPool
+  Export:
+    Name: ${self:custom.base}-IdentityPoolId

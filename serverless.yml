@@ -1,8 +1,23 @@
 service: sls-guru
 
 plugins:
+  - serverless-plugin-additional-stacks
+  - serverless-iam-roles-per-function
+  - serverless-plugin-include-dependencies
   - serverless-offline
-  - serverless-domain-manager
+  - serverless-appsync-plugin
+  # - serverless-domain-manager  //commenting out custom domain because certificate validation is pending
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  stage: ${opt:stage, "test"}
+  memorySize: 128
+  timeout: 60
+  endpoint: regional
+  environment:
+    LIST_ITEM_TABLE: ${self:service}-${self:provider.stage}
 
 custom:
   allowedHeaders:
@@ -16,112 +31,135 @@ custom:
     - X-Amz-User-Agent
     - app_user_id
     - app_user_name
-  customDomain:
-    domainName: rjfinancialgroup.com
-    basePath: 'v1'
-    stage: ${self:provider.stage}
-    certificateName: rjfinancialgroup.com
-    createRoute53Record: true
+  base: ${self:service}-${self:provider.stage}
+  # customDomain:
+  #   domainName: rjfinancialgroup.com
+  #   basePath: 'v1'
+  #   stage: ${self:provider.stage}
+  #   certificateName: rjfinancialgroup.com
+  #   createRoute53Record: true
+  role:
+    arn: arn:aws:iam::959879116503:role
+    cognito:
+      auth:
+        name: ${self:custom.base}-auth-CognitoRole
+        arn: ${self:custom.role.arn}/${self:custom.role.cognito.auth.name}
+      unAuth:
+        name: ${self:custom.base}-unAuth-CognitoRole
+        arn: ${self:custom.role.arn}/${self:custom.role.cognito.unAuth.name}
+    dynamodb:
+      name: ${self:custom.base}-DynamoDB-AppSyncServiceRole
+      arn: ${self:custom.role.arn}/${self:custom.role.dynamodb.name}
+    lambda:
+      name: ${self:custom.base}-Lambda-AppSyncServiceRole
+      arn: ${self:custom.role.arn}/${self:custom.role.lambda.name}
+    logging:
+      name: ${self:custom.base}-Logging-AppSyncServiceRole
+      arn:
+        Fn:GetAtt:
+          - AppSyncLoggingServiceRole
+          - Arn
 
-provider:
-  name: aws
-  runtime: nodejs12.x
-  region: us-west-2
-  stage: ${opt:stage, "test"}
-  memorySize: 128
-  timeout: 60
-  endpoint: regional
-  environment:
-    LIST_ITEM_TABLE: ${self:service}-${self:provider.stage}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-        - dynamodb:PutItem
-        - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.LIST_ITEM_TABLE}"
+additionalStacks:
+  cognitoResources:
+    Deploy: Before
+    StackName: ${self:custom.cognitoStackName}
+    Resources: ${file(./resources/cognito.yml)}
+    Outputs: ${file(./resources/cognito-outputs.yml)}
+  dynamoDBResources:
+    Deploy: Before
+    StackName: ${self:custom.DynamoDBStackName}
+    Resources: ${file(./resources/dynamo-table.yml)}
+# functions:
+#   add-list-item:
+#     handler: ApiGatewayLambdaHandlers/add-list-item.handler
+#     description: POST /list-item
+#     events:
+#       - http:
+#           path: list-item
+#           method: post
+#           cors:
+#             origin: "*"
+#             headers: ${self:custom.allowedHeaders}
+#   update-list-item:
+#     handler: ApiGatewayLambdaHandlers/update-list-item.handler
+#     description: PATCH /list-item
+#     events:
+#       - http:
+#           path: list-item
+#           method: patch
+#           cors:
+#             origin: "*"
+#             headers: ${self:custom.allowedHeaders}
+#   get-list-items:
+#     handler: ApiGatewayLambdaHandlers/get-list-items.handler
+#     description: GET /list-items
+#     events:
+#       - http:
+#           path: list-items
+#           method: get
+#           cors:
+#             origin: "*"
+#             headers: ${self:custom.allowedHeaders}
+#   get-list-item:
+#     handler: ApiGatewayLambdaHandlers/get-list-item.handler
+#     description: GET /list-item/id/{list_item_id}
+#     events:
+#       - http:
+#           path: list-item/id/{list_item_id}
+#           method: get
+#           cors:
+#             origin: "*"
+#             headers: ${self:custom.allowedHeaders}
+#   delete-list-item:
+#     handler: ApiGatewayLambdaHandlers/delete-list-item.handler
+#     description: DELETE /list-item/t/{timestamp}
+#     events:
+#       - http:
+#           path: list-item/t/{timestamp}
+#           method: delete
+#           cors:
+#             origin: "*"
+#             headers: ${self:custom.allowedHeaders}
 
-functions:
-  add-list-item:
-    handler: api/add-list-item.handler
-    description: POST /list-item
-    events:
-      - http:
-          path: list-item
-          method: post
-          cors:
-            origin: "*"
-            headers: ${self:custom.allowedHeaders}
-  update-list-item:
-    handler: api/update-list-item.handler
-    description: PATCH /list-item
-    events:
-      - http:
-          path: list-item
-          method: patch
-          cors:
-            origin: "*"
-            headers: ${self:custom.allowedHeaders}
-  get-list-items:
-    handler: api/get-list-items.handler
-    description: GET /list-items
-    events:
-      - http:
-          path: list-items
-          method: get
-          cors:
-            origin: "*"
-            headers: ${self:custom.allowedHeaders}
-  get-list-item:
-    handler: api/get-list-item.handler
-    description: GET /list-item/id/{list_item_id}
-    events:
-      - http:
-          path: list-item/id/{list_item_id}
-          method: get
-          cors:
-            origin: "*"
-            headers: ${self:custom.allowedHeaders}
-  delete-list-item:
-    handler: api/delete-list-item.handler
-    description: DELETE /list-item/t/{timestamp}
-    events:
-      - http:
-          path: list-item/t/{timestamp}
-          method: delete
-          cors:
-            origin: "*"
-            headers: ${self:custom.allowedHeaders}
-
-resources:
-  Resources:
-    ListItemTable:
-      Type: AWS::DynamoDB::Table
-      DeletionPolicy: Retain
-      Properties:
-        TableName: ${self:provider.environment.LIST_ITEM_TABLE}
-        AttributeDefinitions:
-          - AttributeName: user_id
-            AttributeType: S
-          - AttributeName: timestamp
-            AttributeType: N
-          - AttributeName: list_item_id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: user_id
-            KeyType: "HASH"
-          - AttributeName: timestamp
-            KeyType: "RANGE"
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-        GlobalSecondaryIndexes:
-          - IndexName: list_item_id-index
-            KeySchema:
-              - AttributeName: list_item_id
-                KeyType: "HASH"
-            Projection:
-              ProjectionType: ALL
-            ProvisionedThroughput:
-              ReadCapacityUnits: 1
-              WriteCapacityUnits: 1
+  appSync:
+    name: ${self:custom.base}-api
+    authenticationType: AWS_IAM
+    logConfig:
+      loggingRoleArn: ${self:custom.role.logging.arn}
+      level: All
+    mappingTemplates:
+      - dataSource: ListItems
+        type: Mutation
+        field: createListItem
+        request: "requests/create-list-item.vtl"
+        response: "responses/generic-response.vtl"
+      - dataSource: ListItems
+        type: Mutation
+        field: deleteListItem
+        request: "requests/delete-list-item.vtl"
+        response: "responses/generic-response.vtl"
+      - dataSource: ListItems
+        type: Mutation
+        field: updateListItem
+        request: "requests/update-list-item.vtl"
+        response: "responses/generic-response.vtl"
+      - dataSource: ListItems
+        type: Query
+        field: getListItem
+        request: "requests/get-list-item.vtl"
+        response: "responses/generic-response.vtl"
+      - dataSource: ListItems
+        type: Query
+        field: getListItems
+        request: "requests/get-list-items.vtl"
+        response: "responses/generic-response.vtl"
+    mappingTemplatesLocation: "mapping-templates"
+    serviceRole: AppSyncServiceRole
+    dataSources:
+      - type: AMAZON_DYNAMODB
+        name: ListItems
+        description: 'Table for items in shared grocery list'
+        config:
+          tableName: ${self:provider.environment.LIST_ITEM_TABLE}
+          serviceRoleArn: ${self:custom.role.dynamodb.arn}
