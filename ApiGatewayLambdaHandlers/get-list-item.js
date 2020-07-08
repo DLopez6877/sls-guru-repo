@@ -6,7 +6,7 @@ ROUTE : GET /list-item/id/{list_item_id}
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-west-2' })
 
-const util = require('./util.js');
+const util = require('../api/util.js');
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const { isEmpty } = require('underscore');
 

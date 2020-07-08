@@ -1,0 +1,52 @@
+UserPool:
+  Type: "AWS::Cognito::UserPool"
+  Properties:
+    UserPoolName: ${self:custom.base}-userpool
+    UsernameAttributes:
+      - phone_number
+    Schema:
+      - Name: Name
+        AttributeDataType: String
+        Mutable: true
+        Required: false
+      - Name: nickname
+        AttributeDataType: String
+        Mutable: true
+        required: false
+
+UserPoolClient:
+  Type: "AWS::Cognito::UserPoolClient"
+  Properties:
+    ClientName: ${self:custom.base}-client
+    GenerateSecret: false
+    UserPoolId:
+      Ref: UserPool
+
+IdentityPool:
+  Type: "AWS::Cognito::IdentityPool"
+  Properties:
+    IdentityPoolName: ${self:custom.base}-identityPool
+    AllowAuthenticatedIdentities: true
+    CognitoIdentityProviders:
+      - ClientId:
+          Ref: UserPoolClient
+        ProviderName:
+          Fn:GetAtt:
+            - UserPool
+            - ProviderName
+
+CognitoAuthorizedRole:
+  Type: "AWS::IAM::Role"
+  Properties:
+    RoleName: ${self:custom.role.cognito.unAuth.name}
+    AssumeRolePolicyDocument:
+      Statement:
+        - Effect: "Allow"
+          Principal:
+            Federated: "cognito-identity.amazonaws.com"
+          Action:
+            - "sts:AssumeRoleWithWebIdentity"
+          Condition:
+            StringEquals:
+              "cognito-identity.amazonaws.com:aud"
+                Ref: IdentityPool

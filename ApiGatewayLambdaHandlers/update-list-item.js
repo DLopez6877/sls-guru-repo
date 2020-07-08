@@ -1,31 +1,40 @@
 /*
-ROUTE : DELETE /list-item/t/{list_item_id}  
+ROUTE : PATCH /list-item  
 */
 
 
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-west-2' })
 
-const util = require('./util.js');
+const util = require('../api/util.js');
+const moment = require('moment');
+
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const tableName = process.env.LIST_ITEM_TABLE;
 
 exports.handler = async (event) => {
     try {
-        let timestamp = parseInt(event.pathParameters.timestamp);
-        let params = {
-            TableName: tableName,
-            Key: {
-                user_id: util.getUserId(event.headers),
-                timestamp: timestamp
-            }
-        }
+        let item = JSON.parse(event.body).Item;
+        item.user_id = util.getUserId(event.headers);
+        item.user_name = util.getUserName(event.headers);
+        item.expires = moment().add(60, 'days').unix();
 
-        await dynamoDB.delete(params).promise();
+       await dynamoDB.put({
+            TableName: tableName,
+            Item: item,
+            ConditionExpression: '#t = :t',
+            ExpressionAttributeNames: {
+                '#t': 'timestamp'
+            },
+            ExpressionAttributeValues: {
+                ':t': item.timestamp
+            }
+        }).promise();
 
         return {
             statusCode: 200,
-            headers: util.getResponseHeaders()
+            headers: util.getResponseHeaders(),
+            body: JSON.stringify({item})
         }
     } catch (error) {
         console.log("Error", error)
