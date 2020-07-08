@@ -1,8 +1,7 @@
 {
     "version": "2017-02-28",
-    "operation": "Invoke",
-    "payload": {
-        "field": "deleteListItem",
-        "arguments":  $utils.toJson($context.arguments)
+    "operation": "DeleteItem",
+    "key" : {
+        "id": $util.dynamodb.toDynamoDBJson($ctx.args.id),
     }
 }

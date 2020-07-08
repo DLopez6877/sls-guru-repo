@@ -1,8 +1,15 @@
 {
     "version": "2017-02-28",
-    "operation": "Invoke",
-    "payload": {
-        "field": "updateListItem",
-        "arguments":  $utils.toJson($context.arguments)
+    "operation": "UpdateItem",
+    "key": {
+        "id": $util.dynamodb.toDynamoDBJson($context.arguments.id)
+    },
+    "update"  {
+        "expression": "SET lastModified = :lastModified, content = :content, qty = :qty",
+        "expressionValues": {
+            ":lastModified": $util.time.nowEpochSeconds(),
+            ":content": $util.dynamodb.toDynamoDBJson($context.arguments.content),
+            ":qty": $util.dynamodb.toDynamoDBJson($context.arguments.qty)
+        }
     }
 }

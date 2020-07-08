@@ -5,7 +5,7 @@ type Schema {
 
 type Query {
     getListItems: [ListItem]
-    getListItem(list_item_id: String!): ListItem
+    getListItem(id: String!): ListItem
 }
 
 type Mutation {
@@ -15,32 +15,26 @@ type Mutation {
 }
 
 type ListItem {
-    user_id: String!
-    list_item_id: String!
-    user_name: String!
-    timestamp: String
-    expires: Int
+    id: String
+    content: String
     qty: Int
+    lastModified: Int
 }
 
 input CreateListItemInput {
-    user_id: String!
-    list_item_id: String!
-    user_name: String!
-    timestamp: String
-    expires: Int
+    id: String
+    content: String
     qty: Int
+    lastModified: Int
 }
 
 input UpdateListItemInput {
-    user_id: String
-    list_item_id: String!
-    user_name: String
-    timestamp: String
-    expires: Int
+    id: String
+    content: String
     qty: Int
+    lastModified: Int
 }
 
 input DeleteListItemInput {
-    timestamp: String!
+    id: String
 }

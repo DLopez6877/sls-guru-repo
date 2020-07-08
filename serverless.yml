@@ -16,8 +16,6 @@ provider:
   memorySize: 128
   timeout: 60
   endpoint: regional
-  environment:
-    LIST_ITEM_TABLE: ${self:service}-${self:provider.stage}
 
 custom:
   allowedHeaders:
@@ -32,6 +30,8 @@ custom:
     - app_user_id
     - app_user_name
   base: ${self:service}-${self:provider.stage}
+  accountId: "959879116503"
+  dynamoDBTableName: ${self:custom.base}-ListItems
   dynamoDBStackName: ${self:custom.base}-DynamoDBStack
   # customDomain:
   #   domainName: rjfinancialgroup.com
@@ -40,7 +40,7 @@ custom:
   #   certificateName: rjfinancialgroup.com
   #   createRoute53Record: true
   role:
-    arn: arn:aws:iam::959879116503:role
+    arn: arn:aws:iam::${self:custom.accountId}:role
     dynamodb:
       name: ${self:custom.base}-DynamoDB-AppSyncServiceRole
       arn: ${self:custom.role.arn}/${self:custom.role.dynamodb.name}
@@ -149,7 +149,7 @@ custom:
         name: ListItems
         description: 'Table for items in shared grocery list'
         config:
-          tableName: ${self:provider.environment.LIST_ITEM_TABLE}
+          tableName: ${self:custom.dynamoDBTableName}
           serviceRoleArn: ${self:custom.role.dynamodb.arn}
 
 resources:
