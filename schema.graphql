@@ -9,9 +9,9 @@ type Query {
 }
 
 type Mutation {
-    createListItem(input: CreateListItemInput!) ListItem
-    updateListItem(input: UpdateListItemInput!) ListItem
-    deleteListItem(input: DeleteListItemInput!) ListItem
+    createListItem(input: CreateListItemInput!): ListItem
+    updateListItem(input: UpdateListItemInput!): ListItem
+    deleteListItem(input: DeleteListItemInput!): ListItem
 }
 
 type ListItem {

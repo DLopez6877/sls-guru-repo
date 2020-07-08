@@ -32,6 +32,7 @@ custom:
     - app_user_id
     - app_user_name
   base: ${self:service}-${self:provider.stage}
+  dynamoDBStackName: ${self:custom.base}-DynamoDBStack
   # customDomain:
   #   domainName: rjfinancialgroup.com
   #   basePath: 'v1'
@@ -40,13 +41,6 @@ custom:
   #   createRoute53Record: true
   role:
     arn: arn:aws:iam::959879116503:role
-    cognito:
-      auth:
-        name: ${self:custom.base}-auth-CognitoRole
-        arn: ${self:custom.role.arn}/${self:custom.role.cognito.auth.name}
-      unAuth:
-        name: ${self:custom.base}-unAuth-CognitoRole
-        arn: ${self:custom.role.arn}/${self:custom.role.cognito.unAuth.name}
     dynamodb:
       name: ${self:custom.base}-DynamoDB-AppSyncServiceRole
       arn: ${self:custom.role.arn}/${self:custom.role.dynamodb.name}
@@ -56,20 +50,14 @@ custom:
     logging:
       name: ${self:custom.base}-Logging-AppSyncServiceRole
       arn:
-        Fn:GetAtt:
+        Fn::GetAtt:
           - AppSyncLoggingServiceRole
           - Arn
-
-additionalStacks:
-  cognitoResources:
-    Deploy: Before
-    StackName: ${self:custom.cognitoStackName}
-    Resources: ${file(./resources/cognito.yml)}
-    Outputs: ${file(./resources/cognito-outputs.yml)}
-  dynamoDBResources:
-    Deploy: Before
-    StackName: ${self:custom.DynamoDBStackName}
-    Resources: ${file(./resources/dynamo-table.yml)}
+  additionalStacks:
+    dynamoDBResources:
+      Deploy: Before
+      StackName: ${self:custom.dynamoDBStackName}
+      Resources: ${file(resources/dynamo-table.yml)}
 # functions:
 #   add-list-item:
 #     handler: ApiGatewayLambdaHandlers/add-list-item.handler
@@ -127,7 +115,7 @@ additionalStacks:
     authenticationType: AWS_IAM
     logConfig:
       loggingRoleArn: ${self:custom.role.logging.arn}
-      level: All
+      level: "ERROR"
     mappingTemplates:
       - dataSource: ListItems
         type: Mutation
@@ -154,7 +142,7 @@ additionalStacks:
         field: getListItems
         request: "requests/get-list-items.vtl"
         response: "responses/generic-response.vtl"
-    mappingTemplatesLocation: "mapping-templates"
+    mappingTemplatesLocation: "api/mapping-templates"
     serviceRole: AppSyncServiceRole
     dataSources:
       - type: AMAZON_DYNAMODB
@@ -163,3 +151,30 @@ additionalStacks:
         config:
           tableName: ${self:provider.environment.LIST_ITEM_TABLE}
           serviceRoleArn: ${self:custom.role.dynamodb.arn}
+
+resources:
+  Resources:
+    AppSyncLoggingServiceRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: ${self:custom.role.logging.name}
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - "appsync.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: ${self:custom.role.logging.name}-Policy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: "*"
