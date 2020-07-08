@@ -1,0 +1,15 @@
+type Schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {
+    batchGetListItems(id: [String]): [ListItem]
+    getListItem(id: String!): ListItem
+}
+
+type Mutation {
+    createListItem(input: CreateListItemInput!) ListItem
+    deleteListItem(input: DeleteListItemInput!) ListItem
+    updateListItem(input: UpdateListItemInput!) ListItem
+}

@@ -2,6 +2,7 @@ service: sls-guru
 
 plugins:
   - serverless-offline
+  - serverless-domain-manager
 
 custom:
   allowedHeaders:
@@ -15,17 +16,23 @@ custom:
     - X-Amz-User-Agent
     - app_user_id
     - app_user_name
+  customDomain:
+    domainName: rjfinancialgroup.com
+    basePath: 'v1'
+    stage: ${self:provider.stage}
+    certificateName: rjfinancialgroup.com
+    createRoute53Record: true
 
 provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  stage: prod
+  stage: ${opt:stage, "test"}
   memorySize: 128
-  timeout: 5
+  timeout: 60
   endpoint: regional
   environment:
-    LIST_ITEM_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    LIST_ITEM_TABLE: ${self:service}-${self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
