@@ -11,7 +11,7 @@
     "serverless-offline": "^6.4.0",
     "serverless-plugin-additional-stacks": "^1.4.0",
     "serverless-plugin-include-dependencies": "^4.1.0",
-    "underscore": "^1.10.2",
+    "underscore": "^1.12.1",
     "uuid": "^8.2.0"
   },
   "devDependencies": {
